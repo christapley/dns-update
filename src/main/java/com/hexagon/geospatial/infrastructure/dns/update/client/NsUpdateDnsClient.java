@@ -58,7 +58,7 @@ public class NsUpdateDnsClient implements DnsClient {
             executor.setExitValue(0);
             CommandLine commandLine = new CommandLine(nsupdateCommand);
             executor.execute(commandLine);
-            LOGGER.info(String.format("Output '%s'", output.toString()));
+            LOGGER.debug(String.format("Output '%s'", output.toString()));
         } catch(Exception ex) {
             throw new IllegalStateException(String.format("Output '%s'. Error: '%s'", output.toString(), error.toString()), ex);
         }
@@ -80,7 +80,7 @@ public class NsUpdateDnsClient implements DnsClient {
                 "send",
         authServer, 
         dnsEntry.getFqdn(),
-        dnsEntry.getFqdn(), address[0], address[1], address[2], address[3]);
+        dnsEntry.getFqdn(), Byte.toUnsignedInt(address[0]), Byte.toUnsignedInt(address[1]), Byte.toUnsignedInt(address[2]), Byte.toUnsignedInt(address[3]));
         
         runCommand(ptrUpdate);
         
@@ -90,8 +90,10 @@ public class NsUpdateDnsClient implements DnsClient {
                 ";show\n" + 
                 "send",
         authServer, 
-        address[3], address[2], address[1], address[0], dnsEntry.getFqdn());
+        Byte.toUnsignedInt(address[3]), Byte.toUnsignedInt(address[2]), Byte.toUnsignedInt(address[1]), Byte.toUnsignedInt(address[0]), dnsEntry.getFqdn());
         
         runCommand(ptrUpdateRr);
+        
+        LOGGER.info("Updated %s as %s successfully", dnsEntry.getFqdn(), dnsEntry.getIpAddress());
     }
 }
