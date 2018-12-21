@@ -50,12 +50,12 @@ public class DnsUpdateController {
     @GetMapping("/register/{fqdn}/{ipAddress}")
     @ResponseBody
     public ResponseEntity<DnsEntry> register(@PathVariable("fqdn") String fqdn,
-            @PathVariable("ipAddress") String ipAddress) throws IOException {
+            @PathVariable("ipAddress") String ipAddress) throws Exception {
         
         LOGGER.info("Received request to register %s as %s", fqdn, ipAddress);
         
         DnsEntry dnsEntry = new DnsEntry(ipAddress, fqdn);
-        
+        dnsClient.UpdateARecordEntry(dnsEntry);
         dnsEntriesStorage.addDnsEntry(dnsEntry);
         
         return ResponseEntity.ok().body(dnsEntry);
@@ -66,13 +66,13 @@ public class DnsUpdateController {
     public ResponseEntity<List<DnsEntry>> listAll() throws IOException {
         return ResponseEntity.ok().body(dnsEntriesStorage.listAllDnsEnrties());
     }
-    
+       
     @Scheduled(fixedRate = 30000)
     public void updateDns() throws IOException, Exception {
         List<DnsEntry> currentDnsEntries = dnsEntriesStorage.listAllDnsEnrties();
         currentDnsEntries.stream().forEach((dnsEntry) -> {
-            try {
-                dnsClient.UpdateARecordEntry(dnsEntry);
+           try {
+                dnsEntriesStorage.addDnsEntry(dnsEntry);
             } catch(Exception ex) {
                 LOGGER.error(String.format("Failed to register %s as %s", dnsEntry.getFqdn(), dnsEntry.getIpAddress()), ex);
             }
