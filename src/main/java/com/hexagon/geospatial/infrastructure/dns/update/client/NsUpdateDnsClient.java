@@ -67,7 +67,7 @@ public class NsUpdateDnsClient implements DnsClient {
     @Override
     public void UpdateARecordEntry(DnsEntry dnsEntry) throws Exception {
         
-        LOGGER.info("Updating %s as %s", dnsEntry.getFqdn(), dnsEntry.getIpAddress());
+        LOGGER.info(String.format("Updating %s as %s", dnsEntry.getFqdn(), dnsEntry.getIpAddress()));
         
         InetAddress ipAddress = InetAddress.getByName(dnsEntry.getIpAddress());
         byte[] address = ipAddress.getAddress();
@@ -94,6 +94,6 @@ public class NsUpdateDnsClient implements DnsClient {
         
         runCommand(ptrUpdateRr);
         
-        LOGGER.info("Updated %s as %s successfully", dnsEntry.getFqdn(), dnsEntry.getIpAddress());
+        LOGGER.info(String.format("Updated %s as %s successfully", dnsEntry.getFqdn(), dnsEntry.getIpAddress()));
     }
 }
