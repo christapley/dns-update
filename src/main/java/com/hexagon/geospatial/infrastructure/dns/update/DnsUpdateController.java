@@ -67,12 +67,12 @@ public class DnsUpdateController {
         return ResponseEntity.ok().body(dnsEntriesStorage.listAllDnsEnrties());
     }
        
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 300000)
     public void updateDns() throws IOException, Exception {
         List<DnsEntry> currentDnsEntries = dnsEntriesStorage.listAllDnsEnrties();
         currentDnsEntries.stream().forEach((dnsEntry) -> {
-           try {
-                dnsEntriesStorage.addDnsEntry(dnsEntry);
+            try {
+                dnsClient.UpdateARecordEntry(dnsEntry);
             } catch(Exception ex) {
                 LOGGER.error(String.format("Failed to register %s as %s", dnsEntry.getFqdn(), dnsEntry.getIpAddress()), ex);
             }
