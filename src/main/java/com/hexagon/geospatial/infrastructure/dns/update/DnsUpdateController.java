@@ -52,7 +52,7 @@ public class DnsUpdateController {
     public ResponseEntity<DnsEntry> register(@PathVariable("fqdn") String fqdn,
             @PathVariable("ipAddress") String ipAddress) throws Exception {
         
-        LOGGER.info("Received request to register %s as %s", fqdn, ipAddress);
+        LOGGER.info(String.format("Received request to register %s as %s", fqdn, ipAddress));
         
         DnsEntry dnsEntry = new DnsEntry(ipAddress, fqdn);
         dnsClient.UpdateARecordEntry(dnsEntry);
