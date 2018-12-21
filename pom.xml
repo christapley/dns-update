@@ -65,4 +65,22 @@
             </snapshots>
         </repository>
     </repositories>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <requiresUnpack>
+                        <dependency>
+                            <groupId>org.ajar</groupId>
+                            <artifactId>swagger-spring-mvc-ui</artifactId>
+                        </dependency>
+                    </requiresUnpack>
+                    <mainClass>com.hexagon.geospatial.infrastructure.dns.update.Application</mainClass>
+                    <finalName>${project.artifactId}-spring-boot-${project.version}</finalName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
