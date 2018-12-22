@@ -21,7 +21,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -36,20 +38,22 @@ public class JsonFileDnsEntryStorage implements DnsEntryStorage {
     File jsonStorageFile;
     
     long jsonStorageFileLastModified;
-    List<DnsEntry> dnsEntries;
+    Map<String, String> dnsEntries;
     ObjectMapper mapper;
             
     public JsonFileDnsEntryStorage() {
         jsonStorageFileLastModified = -1;
-        dnsEntries = new ArrayList<>();
+        dnsEntries = new HashMap<>();
         mapper = new ObjectMapper();
     }
     
     public void readDnsEntriesFromFile() throws IOException {
+        dnsEntries.clear();
         if(jsonStorageFile.exists()) {
-            dnsEntries = Arrays.asList(mapper.readValue(jsonStorageFile, DnsEntry[].class));
-        } else {
-            dnsEntries.clear();
+            List<DnsEntry> dnsEntriesFromFile = Arrays.asList(mapper.readValue(jsonStorageFile, DnsEntry[].class));
+            dnsEntriesFromFile.stream().forEach((dnsEntry) -> {
+                dnsEntries.put(dnsEntry.getFqdn(), dnsEntry.getIpAddress());
+            });
         }
     }
     
@@ -62,7 +66,11 @@ public class JsonFileDnsEntryStorage implements DnsEntryStorage {
         if(jsonStorageFileLastModified != jsonStorageFile.lastModified()) {
             readDnsEntriesFromFile();
         }
-        return dnsEntries;
+        List<DnsEntry> dnsEntriesList = new ArrayList<>();
+        dnsEntries.entrySet().stream().forEach((entry) -> {
+            dnsEntriesList.add(new DnsEntry(entry.getValue(), entry.getKey()));
+        });
+        return dnsEntriesList;
     }
 
     @Override
@@ -70,7 +78,7 @@ public class JsonFileDnsEntryStorage implements DnsEntryStorage {
         if(jsonStorageFileLastModified != jsonStorageFile.lastModified()) {
             readDnsEntriesFromFile();
         }
-        dnsEntries.add(dnsEntry);
+        dnsEntries.put(dnsEntry.getFqdn(), dnsEntry.getIpAddress());
         writeDnsEntriesToFile();
     }
     
