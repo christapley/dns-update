@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Chris
  */
 @RestController
-@CrossOrigin
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class DnsUpdateController {
     
     public static final Logger LOGGER = LoggerFactory.getLogger(DnsUpdateController.class);
