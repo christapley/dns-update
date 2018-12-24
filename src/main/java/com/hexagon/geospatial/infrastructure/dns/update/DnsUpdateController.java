@@ -19,10 +19,14 @@ import com.hexagon.geospatial.infrastructure.dns.update.client.DnsClient;
 import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntry;
 import com.hexagon.geospatial.infrastructure.dns.update.storage.DnsEntryStorage;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -47,6 +51,18 @@ public class DnsUpdateController {
     @Autowired
     DnsClient dnsClient;
     
+    @Value("${dns.update.millis:600000}")
+    long dnsUpdatePeriod;
+    
+    AtomicLong lastNewDnsEntryTime;
+    long lastDnsUpdateTime;
+    
+    @PostConstruct
+    public void postConstruct() {
+        lastNewDnsEntryTime = new AtomicLong(Instant.now().toEpochMilli());
+        lastDnsUpdateTime = Instant.now().toEpochMilli() - dnsUpdatePeriod;
+    }
+    
     @GetMapping("/register/{fqdn}/{ipAddress}")
     @ResponseBody
     public ResponseEntity<DnsEntry> register(@PathVariable("fqdn") String fqdn,
@@ -55,9 +71,8 @@ public class DnsUpdateController {
         LOGGER.info(String.format("Received request to register %s as %s", fqdn, ipAddress));
         
         DnsEntry dnsEntry = new DnsEntry(ipAddress, fqdn);
-        dnsClient.UpdateARecordEntry(dnsEntry);
         dnsEntriesStorage.addDnsEntry(dnsEntry);
-        
+        lastNewDnsEntryTime.set(Instant.now().toEpochMilli());
         return ResponseEntity.ok().body(dnsEntry);
     }
     
@@ -67,15 +82,20 @@ public class DnsUpdateController {
         return ResponseEntity.ok().body(dnsEntriesStorage.listAllDnsEnrties());
     }
        
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 10000)
     public void updateDns() throws IOException, Exception {
-        List<DnsEntry> currentDnsEntries = dnsEntriesStorage.listAllDnsEnrties();
-        currentDnsEntries.stream().forEach((dnsEntry) -> {
-            try {
-                dnsClient.UpdateARecordEntry(dnsEntry);
-            } catch(Exception ex) {
-                LOGGER.error(String.format("Failed to register %s as %s", dnsEntry.getFqdn(), dnsEntry.getIpAddress()), ex);
-            }
-        });
+        long loadedLastNewDnsEntryTime = lastNewDnsEntryTime.get();
+        long now = Instant.now().toEpochMilli();
+        if(loadedLastNewDnsEntryTime > lastDnsUpdateTime || now > lastDnsUpdateTime + dnsUpdatePeriod) {
+            lastDnsUpdateTime = now;
+            List<DnsEntry> currentDnsEntries = dnsEntriesStorage.listAllDnsEnrties();
+            currentDnsEntries.stream().forEach((dnsEntry) -> {
+                try {
+                    dnsClient.UpdateARecordEntry(dnsEntry);
+                } catch(Exception ex) {
+                    LOGGER.error(String.format("Failed to register %s as %s", dnsEntry.getFqdn(), dnsEntry.getIpAddress()), ex);
+                }
+            });
+        }
     } 
 }
