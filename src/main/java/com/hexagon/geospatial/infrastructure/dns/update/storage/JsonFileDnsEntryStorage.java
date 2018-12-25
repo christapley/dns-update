@@ -16,6 +16,7 @@
 package com.hexagon.geospatial.infrastructure.dns.update.storage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntry;
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class JsonFileDnsEntryStorage implements DnsEntryStorage {
         jsonStorageFileLastModified = -1;
         dnsEntries = new HashMap<>();
         mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
     
     public void readDnsEntriesFromFile() throws IOException {
