@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.hexagon.geospatial.infrastructure.dns.update.entity;
 
-package com.hexagon.geospatial.infrastructure.dns.update;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  *
  * @author Chris
  */
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication
-@EnableScheduling
-public class Application {
-
-    public static void main(String[] args) {
-        System.setProperty("server.error.whitelabel.enabled", "false");
-        SpringApplication.run(Application.class, args);
-    }
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ServiceError {
+    String reason;
+    String message;
 }

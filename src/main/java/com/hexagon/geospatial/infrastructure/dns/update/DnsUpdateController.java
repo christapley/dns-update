@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  *
@@ -66,20 +68,27 @@ public class DnsUpdateController {
     @GetMapping("/register/{fqdn}/{ipAddress}")
     @ResponseBody
     public ResponseEntity<DnsEntry> register(@PathVariable("fqdn") String fqdn,
-            @PathVariable("ipAddress") String ipAddress) throws Exception {
+            @PathVariable("ipAddress") String ipAddress) throws ResponseStatusException {
         
         LOGGER.info(String.format("Received request to register %s as %s", fqdn, ipAddress));
-        
-        DnsEntry dnsEntry = new DnsEntry(ipAddress, fqdn);
-        dnsEntriesStorage.addDnsEntry(dnsEntry);
-        lastNewDnsEntryTime.set(Instant.now().toEpochMilli());
-        return ResponseEntity.ok().body(dnsEntry);
+        try {
+            DnsEntry dnsEntry = new DnsEntry(ipAddress, fqdn);
+            dnsEntriesStorage.addDnsEntry(dnsEntry);
+            lastNewDnsEntryTime.set(Instant.now().toEpochMilli());
+            return ResponseEntity.ok().body(dnsEntry);
+        } catch(IOException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Unable to store DnsEntry(%s, %s)", fqdn, ipAddress), ex);
+        }
     }
     
     @GetMapping("/list")
     @ResponseBody
-    public ResponseEntity<List<DnsEntry>> listAll() throws IOException {
-        return ResponseEntity.ok().body(dnsEntriesStorage.listAllDnsEnrties());
+    public ResponseEntity<List<DnsEntry>> listAll() throws ResponseStatusException {
+        try {
+            return ResponseEntity.ok().body(dnsEntriesStorage.listAllDnsEnrties());
+        } catch(IOException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to store list DnsEntries", ex);
+        }
     }
        
     @Scheduled(fixedRate = 10000)
