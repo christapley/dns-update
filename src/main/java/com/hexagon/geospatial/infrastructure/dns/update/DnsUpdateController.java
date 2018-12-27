@@ -65,7 +65,7 @@ public class DnsUpdateController {
         lastDnsUpdateTime = Instant.now().toEpochMilli() - dnsUpdatePeriod;
     }
     
-    @GetMapping("/register/{fqdn}/{ipAddress}")
+    @GetMapping("/register/{fqdn:.+}/{ipAddress:.+}")
     @ResponseBody
     public ResponseEntity<DnsEntry> register(@PathVariable("fqdn") String fqdn,
             @PathVariable("ipAddress") String ipAddress) throws ResponseStatusException {
