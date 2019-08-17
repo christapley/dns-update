@@ -17,6 +17,8 @@ package com.hexagon.geospatial.infrastructure.dns.update;
 
 import com.hexagon.geospatial.infrastructure.dns.update.client.DnsClient;
 import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntry;
+import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryARecord;
+import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryCname;
 import com.hexagon.geospatial.infrastructure.dns.update.storage.DnsEntryStorage;
 import java.io.IOException;
 import java.time.Instant;
@@ -67,17 +69,33 @@ public class DnsUpdateController {
     
     @GetMapping("/register/{fqdn:.+}/{ipAddress:.+}")
     @ResponseBody
-    public ResponseEntity<DnsEntry> register(@PathVariable("fqdn") String fqdn,
+    public ResponseEntity<DnsEntryARecord> register(@PathVariable("fqdn") String fqdn,
             @PathVariable("ipAddress") String ipAddress) throws ResponseStatusException {
         
         LOGGER.info(String.format("Received request to register %s as %s", fqdn, ipAddress));
         try {
-            DnsEntry dnsEntry = new DnsEntry(ipAddress, fqdn);
+            DnsEntryARecord dnsEntry = new DnsEntryARecord(fqdn, ipAddress);
             dnsEntriesStorage.addDnsEntry(dnsEntry);
             lastNewDnsEntryTime.set(Instant.now().toEpochMilli());
             return ResponseEntity.ok().body(dnsEntry);
         } catch(IOException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Unable to store DnsEntry(%s, %s)", fqdn, ipAddress), ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Unable to store DnsEntryARecord(%s, %s)", fqdn, ipAddress), ex);
+        }
+    }
+    
+    @GetMapping("/register/cname/{fqdnExisting:.+}/{fqdnNew:.+}")
+    @ResponseBody
+    public ResponseEntity<DnsEntryCname> registerCname(@PathVariable("fqdnExisting") String fqdnExisting,
+            @PathVariable("fqdnNew") String fqdnNew) throws ResponseStatusException {
+        
+        LOGGER.info(String.format("Received request to CNAME %s as %s", fqdnNew, fqdnExisting));
+        try {
+            DnsEntryCname dnsEntry = new DnsEntryCname(fqdnNew, fqdnExisting);
+            dnsEntriesStorage.addDnsEntry(dnsEntry);
+            lastNewDnsEntryTime.set(Instant.now().toEpochMilli());
+            return ResponseEntity.ok().body(dnsEntry);
+        } catch(IOException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Unable to store DnsEntryCname(%s, %s)", fqdnNew, fqdnExisting), ex);
         }
     }
     
@@ -100,9 +118,13 @@ public class DnsUpdateController {
             List<DnsEntry> currentDnsEntries = dnsEntriesStorage.listAllDnsEnrties();
             currentDnsEntries.stream().forEach((dnsEntry) -> {
                 try {
-                    dnsClient.UpdateARecordEntry(dnsEntry);
+                    if(dnsEntry instanceof DnsEntryARecord) {
+                        dnsClient.UpdateARecordEntry((DnsEntryARecord)dnsEntry);    
+                    } else if(dnsEntry instanceof DnsEntryCname) {
+                        dnsClient.UpdateCnameRecordEntry((DnsEntryCname)dnsEntry);    
+                    }
                 } catch(Exception ex) {
-                    LOGGER.error(String.format("Failed to register %s as %s", dnsEntry.getFqdn(), dnsEntry.getIpAddress()), ex);
+                    LOGGER.error(String.format("Failed to register %s with %s", dnsEntry.getFqdn(), dnsEntry.toString()), ex);
                 }
             });
         }

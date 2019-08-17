@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Chris.
+ * Copyright 2019 Chris.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hexagon.geospatial.infrastructure.dns.update.client;
-
-import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryARecord;
-import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryCname;
+package com.hexagon.geospatial.infrastructure.dns.update.entity;
 
 /**
  *
  * @author Chris
  */
-public interface DnsClient {
-    void UpdateARecordEntry(DnsEntryARecord dnsEntry) throws Exception;
-    void UpdateCnameRecordEntry(DnsEntryCname dnsEntry) throws Exception;
+public enum DnsEntryType {
+    A,
+    CNAME;
 }

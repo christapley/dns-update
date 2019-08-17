@@ -39,22 +39,23 @@ public class JsonFileDnsEntryStorage implements DnsEntryStorage {
     File jsonStorageFile;
     
     long jsonStorageFileLastModified;
-    Map<String, String> dnsEntries;
+    Map<String, DnsEntry> dnsEntries;
     ObjectMapper mapper;
-            
+  
     public JsonFileDnsEntryStorage() {
         jsonStorageFileLastModified = -1;
         dnsEntries = new HashMap<>();
         mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
     
     public void readDnsEntriesFromFile() throws IOException {
         dnsEntries.clear();
         if(jsonStorageFile.exists()) {
-            List<DnsEntry> dnsEntriesFromFile = Arrays.asList(mapper.readValue(jsonStorageFile, DnsEntry[].class));
-            dnsEntriesFromFile.stream().forEach((dnsEntry) -> {
-                dnsEntries.put(dnsEntry.getFqdn(), dnsEntry.getIpAddress());
+            JsonFileDnsEntryEntity entity = mapper.readValue(jsonStorageFile, JsonFileDnsEntryEntity.class);
+            entity.getDnsEntries().stream().forEach((dnsEntry) -> {
+                dnsEntries.put(dnsEntry.getFqdn(), dnsEntry);
             });
         }
     }
@@ -62,13 +63,15 @@ public class JsonFileDnsEntryStorage implements DnsEntryStorage {
     public List<DnsEntry> getDnsEnrtiesAsList() {
         List<DnsEntry> dnsEntriesList = new ArrayList<>();
         dnsEntries.entrySet().stream().forEach((entry) -> {
-            dnsEntriesList.add(new DnsEntry(entry.getValue(), entry.getKey()));
+            dnsEntriesList.add(entry.getValue());
         });
         return dnsEntriesList;
     }
     
     public void writeDnsEntriesToFile() throws IOException {
-        mapper.writeValue(jsonStorageFile, getDnsEnrtiesAsList());
+        JsonFileDnsEntryEntity entity = new JsonFileDnsEntryEntity();
+        entity.setDnsEntries(getDnsEnrtiesAsList());
+        mapper.writeValue(jsonStorageFile, entity);
     }
     
     @Override
@@ -84,9 +87,7 @@ public class JsonFileDnsEntryStorage implements DnsEntryStorage {
         if(jsonStorageFileLastModified != jsonStorageFile.lastModified()) {
             readDnsEntriesFromFile();
         }
-        dnsEntries.put(dnsEntry.getFqdn(), dnsEntry.getIpAddress());
+        dnsEntries.put(dnsEntry.getFqdn(), dnsEntry);
         writeDnsEntriesToFile();
     }
-    
-       
 }

@@ -16,6 +16,8 @@
 package com.hexagon.geospatial.infrastructure.dns.update.client;
 
 import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntry;
+import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryARecord;
+import com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryCname;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -65,7 +67,7 @@ public class NsUpdateDnsClient implements DnsClient {
     }
     
     @Override
-    public void UpdateARecordEntry(DnsEntry dnsEntry) throws Exception {
+    public void UpdateARecordEntry(DnsEntryARecord dnsEntry) throws Exception {
         
         LOGGER.info(String.format("Updating %s as %s", dnsEntry.getFqdn(), dnsEntry.getIpAddress()));
         
@@ -95,5 +97,25 @@ public class NsUpdateDnsClient implements DnsClient {
         runCommand(ptrUpdateRr);
         
         LOGGER.info(String.format("Updated %s as %s successfully", dnsEntry.getFqdn(), dnsEntry.getIpAddress()));
+    }
+
+    @Override
+    public void UpdateCnameRecordEntry(DnsEntryCname dnsEntry) throws IOException {
+        LOGGER.info(String.format("Updating %s as cname of %s", dnsEntry.getFqdn(), dnsEntry.getDestinationFqdn()));
+        
+        String ptrUpdate = String.format(
+                "server %s\n" + 
+                "prereq nxdomain %s\n" + 
+                "update add %s 86400 CNAME %s\n" + 
+                ";show\n" + 
+                "send",
+        authServer, 
+        dnsEntry.getFqdn(),
+        dnsEntry.getFqdn(),
+        dnsEntry.getDestinationFqdn());
+        
+        runCommand(ptrUpdate);
+        
+        LOGGER.info(String.format("Updated %s as cname of %s successfully", dnsEntry.getFqdn(), dnsEntry.getDestinationFqdn()));
     }
 }

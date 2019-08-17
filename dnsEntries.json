@@ -1,0 +1,15 @@
+[ "com.hexagon.geospatial.infrastructure.dns.update.storage.JsonFileDnsEntryEntity", {
+  "dnsEntries" : [ "java.util.ArrayList", [ [ "com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryCname", {
+    "fqdn" : "dfdf.home.com1",
+    "destinationFqdn" : "anc.home.com"
+  } ], [ "com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryCname", {
+    "fqdn" : "dfdf.home.com",
+    "destinationFqdn" : "anc.home.com"
+  } ], [ "com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryARecord", {
+    "fqdn" : "test.domain.c2om",
+    "ipAddress" : "10.10.10.101"
+  } ], [ "com.hexagon.geospatial.infrastructure.dns.update.entity.DnsEntryARecord", {
+    "fqdn" : "test.domain.com",
+    "ipAddress" : "10.10.10.10"
+  } ] ] ]
+} ]
