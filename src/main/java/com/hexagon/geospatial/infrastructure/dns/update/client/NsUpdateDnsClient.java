@@ -77,10 +77,12 @@ public class NsUpdateDnsClient implements DnsClient {
         String ptrUpdate = String.format(
                 "server %s\n" + 
                 "update delete %s. A\n" +
+                "update delete %s cname\n" + 
                 "update add %s. 86400 A %d.%d.%d.%d\n" +
                 ";show\n" + 
                 "send",
         authServer, 
+        dnsEntry.getFqdn(),
         dnsEntry.getFqdn(),
         dnsEntry.getFqdn(), Byte.toUnsignedInt(address[0]), Byte.toUnsignedInt(address[1]), Byte.toUnsignedInt(address[2]), Byte.toUnsignedInt(address[3]));
         
@@ -105,11 +107,13 @@ public class NsUpdateDnsClient implements DnsClient {
         
         String ptrUpdate = String.format(
                 "server %s\n" + 
-                "prereq nxdomain %s\n" + 
+                "update delete %s A\n" + 
+                "update delete %s cname\n" + 
                 "update add %s 86400 CNAME %s\n" + 
                 ";show\n" + 
                 "send",
         authServer, 
+        dnsEntry.getFqdn(),
         dnsEntry.getFqdn(),
         dnsEntry.getFqdn(),
         dnsEntry.getDestinationFqdn());

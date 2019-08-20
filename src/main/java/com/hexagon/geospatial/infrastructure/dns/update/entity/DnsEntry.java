@@ -15,7 +15,6 @@
  */
 package com.hexagon.geospatial.infrastructure.dns.update.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
